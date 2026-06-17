@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">SHOP – Smart Product Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f4ff;
+            --bg-card: rgba(255,255,255,0.8);
+            --text: #2d2d3f;
+            --text-secondary: #6b6b80;
+            --border: rgba(0,0,0,0.06);
+            --primary: #6C5CE7;
+            --primary-soft: #a29bfe;
+            --primary-glow: rgba(108,92,231,0.3);
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --shadow: 0 8px 30px rgba(0,0,0,0.05);
+            --shadow-hover: 0 12px 35px rgba(0,0,0,0.1);
+            --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            --font: 'Inter', sans-serif;
+        }
+        body.dark {
+            --bg: #181a2e;
+            --bg-card: rgba(30,32,54,0.8);
+            --text: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --border: rgba(255,255,255,0.08);
+            --shadow: 0 8px 30px rgba(0,0,0,0.4);
+            --shadow-hover: 0 12px 40px rgba(0,0,0,0.6);
+            --primary-soft: #7c6ff7;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font); background: var(--bg); color: var(--text);
+            min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Splash */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; color: white; overflow: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+        #splash.hide { opacity: 0; visibility: hidden; }
+        .bubbles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .bubble {
+            position: absolute; background: rgba(255,255,255,0.15);
+            border-radius: 50%; animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+        .splash-logo { font-size: 5rem; animation: glowPulse 2s ease-in-out infinite; z-index: 2; }
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.5); transform: scale(1); }
+            50% { text-shadow: 0 0 40px rgba(255,255,255,0.9); transform: scale(1.05); }
+        }
+        .splash-title {
+            font-size: 3rem; font-weight: 700; letter-spacing: 4px;
+            margin-top: 0.5rem; position: relative; z-index: 2;
+        }
+        .progress-bar { width: 180px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 4px; margin-top: 2rem; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: white; border-radius: 4px; animation: fillProgress 3s linear forwards; }
+        @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+        /* Main App */
+        .app { display: none; flex-direction: column; height: 100vh; }
+        .app.show { display: flex; }
+
+        /* Header + Tabs combo */
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--bg-card); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .app-header {
+            padding: 1rem 1.2rem 0.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .shop-name {
+            font-size: 1.6rem; font-weight: 700; color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+        .tabs {
+            display: flex; padding: 0 0.8rem 0.5rem;
+        }
+        .tab {
+            flex: 1; padding: 0.7rem 0; text-align: center; cursor: pointer;
+            color: var(--text-secondary); transition: var(--transition);
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            border-radius: var(--radius-sm);
+        }
+        .tab i { font-size: 1.4rem; }
+        .tab span { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 8px 20px var(--primary-glow); }
+
+        .content { flex: 1; overflow-y: auto; padding: 1rem; padding-bottom: 90px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); backdrop-filter: blur(20px);
+            border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow);
+            transition: var(--transition); animation: fadeSlide 0.3s ease;
+        }
+        .card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card-header { display: flex; justify-content: space-between; align-items: center; }
+        .product-name { font-weight: 600; font-size: 1.1rem; }
+        .product-meta { font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+        .badge { background: var(--primary-soft); color: white; padding: 0.15rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .due-paid { opacity: 0.6; }
+        .due-paid .product-name { text-decoration: line-through; }
+
+        button {
+            border: none; cursor: pointer; font-family: var(--font); font-weight: 600;
+            border-radius: var(--radius-sm); transition: var(--transition);
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--bg-card); color: var(--text);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        button:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.1); transform: translateY(-1px); }
+        button.primary { background: var(--primary); color: white; border: none; box-shadow: 0 6px 18px var(--primary-glow); }
+        button.success { background: var(--success); color: white; }
+        button.danger { background: var(--danger); color: white; }
+        .icon-btn {
+            width: 38px; height: 38px; border-radius: 50%; padding: 0;
+            font-size: 1.2rem; background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .icon-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .fab {
+            position: fixed; bottom: 30px; right: 30px; z-index: 200;
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--primary); color: white; font-size: 1.5rem;
+            box-shadow: 0 10px 25px var(--primary-glow);
+            border: none; transition: var(--transition);
+        }
+        .fab:hover { transform: scale(1.1); }
+        .fab-secondary { bottom: 100px; background: #2ecc71; box-shadow: 0 10px 25px rgba(46,204,113,0.3); }
+
+        input, select {
+            padding: 0.75rem 1rem; border-radius: var(--radius-sm);
+            border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text); font-family: var(--font);
+            transition: var(--transition); font-size: 0.9rem; width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+            display: flex; align-items: flex-end; justify-content: center;
+            z-index: 300; visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal.active { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--bg-card); backdrop-filter: blur(25px);
+            border-radius: 28px 28px 0 0; padding: 1.8rem;
+            width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 -12px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .modal.active .modal-content { transform: translateY(0); }
+
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 1rem; }
+        .calc-btn { padding: 1rem; font-size: 1.2rem; border-radius: var(--radius-sm); background: var(--bg); border: 1px solid var(--border); color: var(--text); box-shadow: none; }
+        .calc-btn:active { background: var(--primary); color: white; transform: scale(0.95); }
+        .result-display { background: var(--bg); border-radius: var(--radius-sm); padding: 1rem; text-align: right; font-size: 2rem; font-weight: 600; border: 1px solid var(--border); }
+
+        .row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+        .mt-1 { margin-top: 1rem; }
+        .empty-state { text-align: center; padding: 4rem 2rem; opacity: 0.6; }
+        .empty-state i { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash">
+        <div class="bubbles" id="bubblesContainer"></div>
+        <div class="splash-logo">🛒</div>
+        <div class="splash-title" id="splashTitle">SHOP</div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app" id="app">
+        <div class="top-bar">
+            <div class="app-header">
+                <span class="shop-name" id="headerShopName">SHOP</span>
+            </div>
+            <div class="tabs">
+                <div class="tab active" data-tab="products"><i>📦</i><span>Shop</span></div>
+                <div class="tab" data-tab="dues"><i>💰</i><span>Dues</span></div>
+                <div class="tab" data-tab="settings"><i>⚙️</i><span>Settings</span></div>
+            </div>
+        </div>
+        <div class="content" id="content"></div>
+    </div>
+
+    <button class="fab" id="calcFab" title="Calculator">🧮</button>
+    <button class="fab fab-secondary" id="addFab" title="Add Product">＋</button>
+
+    <div class="modal" id="modal"><div class="modal-content" id="modalContent"></div></div>
+
+    <script>
+        // Data
+        const SP = 'shop_products_smart';
+        const SD = 'shop_dues_smart';
+        const SS = 'shop_settings_smart';
+        let products = JSON.parse(localStorage.getItem(SP)) || [];
+        let dues = JSON.parse(localStorage.getItem(SD)) || [];
+        let settings = JSON.parse(localStorage.getItem(SS)) || {
+            theme: 'light',
+            primaryColor: '#6C5CE7',
+            shopName: 'SHOP'
+        };
+
+        const save = () => {
+            localStorage.setItem(SP, JSON.stringify(products));
+            localStorage.setItem(SD, JSON.stringify(dues));
+            localStorage.setItem(SS, JSON.stringify(settings));
+        };
+
+        const updateShopNameDisplay = () => {
+            document.getElementById('splashTitle').textContent = settings.shopName;
+            document.getElementById('headerShopName').textContent = settings.shopName;
+            document.title = settings.shopName + ' – Smart Product Manager';
+        };
+
+        const applyTheme = () => {
+            document.body.className = settings.theme === 'dark' ? 'dark' : '';
+            document.documentElement.style.setProperty('--primary', settings.primaryColor);
+            const hexToRgb = (h) => {
+                let r=0,g=0,b=0;
+                if(h.length===7){ r=parseInt(h[1]+h[2],16); g=parseInt(h[3]+h[4],16); b=parseInt(h[5]+h[6],16); }
+                return `${r},${g},${b}`;
+            };
+            document.documentElement.style.setProperty('--primary-glow', `rgba(${hexToRgb(settings.primaryColor)},0.3)`);
+            document.documentElement.style.setProperty('--primary-soft', `rgba(${hexToRgb(settings.primaryColor)},0.7)`);
+            updateShopNameDisplay();
+        };
+
+        // Splash bubbles
+        function createBubbles() {
+            const container = document.getElementById('bubblesContainer');
+            for (let i = 0; i < 25; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 12 + 4;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = Math.random() * 6 + 5 + 's';
+                bubble.style.animationDelay = Math.random() * 8 + 's';
+                container.appendChild(bubble);
+            }
+        }
+        createBubbles();
+
+        // Splash to App
+        window.addEventListener('load', () => {
+            applyTheme();
+            setTimeout(() => {
+                document.getElementById('splash').classList.add('hide');
+                document.getElementById('app').classList.add('show');
+                render();
+            }, 3000);
+        });
+
+        // Tabs
+        let currentTab = 'products';
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                currentTab = this.dataset.tab;
+                render();
+            });
+        });
+
+        function render() {
+            const c = document.getElementById('content');
+            if (currentTab === 'products') renderProducts(c);
+            else if (currentTab === 'dues') renderDues(c);
+            else renderSettings(c);
+            document.getElementById('calcFab').style.display = 'flex';
+            document.getElementById('addFab').style.display = currentTab === 'products' ? 'flex' : 'none';
+        }
+
+        // ---------- PRODUCTS ----------
+        function renderProducts(container) {
+            if (products.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i>📦</i></div>`;
+                return;
+            }
+            container.innerHTML = '<div id="productList"></div>';
+            const list = container.querySelector('#productList');
+            products.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const unitSymbol = prod.category === 'weight' ? 'kg' : 'pc';
+                const price = prod.category === 'weight' ? (prod.basePrice * 1000).toFixed(2) : prod.basePrice.toFixed(2);
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div>
+                            <div class="product-name">${prod.name}</div>
+                            <div class="product-meta">
+                                <span>${prod.category === 'weight' ? '⚖️' : '🔢'}</span>
+                                <span>৳${price}/${unitSymbol}</span>
+                            </div>
+                        </div>
+                        <div class="row" style="gap:4px">
+                            <button class="icon-btn" onclick="event.stopPropagation();openProductCalculator(${prod.id})">🧮</button>
+                            <button class="icon-btn" onclick="event.stopPropagation();editProduct(${prod.id})">✏️</button>
+                            <button class="icon-btn danger" onclick="event.stopPropagation();deleteProduct(${prod.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                card.addEventListener('click', () => showProductInfo(prod));
+                list.appendChild(card);
+            });
+        }
+
+        function showProductInfo(prod) {
+            let details = '';
+            if (prod.category === 'weight') {
+                details = `Gram: ৳${prod.basePrice.toFixed(4)}<br>Kg: ৳${(prod.basePrice * 1000).toFixed(2)}<br>Palla (5 kg): ৳${(prod.basePrice * 5000).toFixed(2)}`;
+            } else {
+                details = `Piece: ৳${prod.basePrice.toFixed(2)}<br>Hali (4 pcs): ৳${(prod.basePrice * 4).toFixed(2)}<br>Dozen (12 pcs): ৳${(prod.basePrice * 12).toFixed(2)}`;
+            }
+            document.getElementById('modalContent').innerHTML = `
+                <h3>${prod.name}</h3>
+                <div style="margin-top:1.2rem;font-size:1.1rem;line-height:2.2">${details}</div>
+                <div class="row mt-1" style="justify-content:flex-end">
+                    <button class="icon-btn" onclick="closeModal()">✕</button>
+                </div>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function openProductModal(editId = null) {
+            const prod = editId ? products.find(p => p.id === editId) : null;
+            const html = `
+                <h3 style="margin-bottom:1rem">${prod ? 'Edit Product' : 'New Product'}</h3>
+                <input id="prodName" placeholder="Product Name" value="${prod ? prod.name : ''}">
+                <select id="prodCategory" onchange="onCatChange()" style="margin-top:0.7rem">
+                    <option value="weight" ${prod && prod.category === 'weight' ? 'selected' : ''}>⚖️ Weight</option>
+                    <option value="count" ${prod && prod.category === 'count' ? 'selected' : ''}>🔢 Count</option>
+                </select>
+                <div class="row" style="margin-top:0.7rem">
+                    <select id="prodUnit" style="flex:1" onchange="updateFields()">${unitOptions(prod ? prod.category : 'weight', prod ? defUnit(prod) : 'kg')}</select>
+                    <input id="prodPrice" type="number" placeholder="Price" style="flex:1.5" step="any" oninput="updateFields()" value="${prod ? enteredPrice(prod) : ''}">
+                </div>
+                <div id="otherPrices" style="margin-top:1rem;font-size:0.9rem"></div>
+                <div class="row mt-1" style="justify-content:flex-end">
+                    <button class="icon-btn" onclick="closeModal()">✕</button>
+                    <button class="primary" style="padding:0.6rem 1.4rem;" onclick="saveProduct(${prod ? prod.id : 'null'})">💾 Save</button>
+                </div>
+            `;
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modal').classList.add('active');
+            updateFields();
+        }
+
+        function unitOptions(cat, sel) {
+            if (cat === 'weight') return ['gram','kg','palla'].map(u => `<option value="${u}" ${u === sel ? 'selected' : ''}>${u}</option>`).join('');
+            return ['piece','hali','dozen'].map(u => `<option value="${u}" ${u === sel ? 'selected' : ''}>${u}</option>`).join('');
+        }
+        function defUnit(prod) { return prod.category === 'weight' ? 'kg' : 'piece'; }
+        function enteredPrice(prod) { return prod.category === 'weight' ? (prod.basePrice * 1000).toFixed(2) : prod.basePrice.toFixed(2); }
+
+        function onCatChange() {
+            const cat = document.getElementById('prodCategory').value;
+            document.getElementById('prodUnit').innerHTML = unit
